@@ -412,10 +412,6 @@ div {
             justify-content: space-between;
             width: 100%;
 
-            .search-input, button {
-              margin-block: 1rem;
-            }
-
             .select-game {
               cursor: pointer;
               width: 100%;
