@@ -32,7 +32,7 @@ const password: Ref<string> = ref('');
 const emailError: Ref<string> = ref('');
 const passwordError: Ref<string> = ref('');
 
-const _validEmail = (email) => {
+const _validEmail = (email: string) => {
   return EMAIL_REGEXP.test(email);
 }
 

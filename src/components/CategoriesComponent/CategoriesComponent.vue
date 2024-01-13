@@ -11,7 +11,6 @@
 
 <script setup lang="ts">
 import {ref, Ref} from "vue";
-import {Category} from "@/interfaces/category.interface";
 import CategoryComponent from "@/components/CategoriesComponent/components/CategoryComponent/CategoryComponent.vue";
 import action_games from "@/assets/images/action_games.jpg";
 import sport_games from "@/assets/images/sport_games.jpg";
@@ -21,6 +20,7 @@ import fantasy_games from "@/assets/images/fantasy_games.jpg";
 import strategy_games from "@/assets/images/strategy_games.jpg";
 import shooter_games from "@/assets/images/shooter_games.jpg";
 import all_games from "@/assets/images/all_games.jpg";
+import {Category} from "@/interfaces/category.interface";
 
 const categories: Ref<Category[]> = ref([
   {

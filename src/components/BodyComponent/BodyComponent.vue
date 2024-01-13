@@ -25,6 +25,13 @@
         <h2 class="clock">{{ time }}</h2>
       </div>
 
+      <div class="party">
+        <div v-for="(party, index) in onParty" :key="party.id" :style="{'background': party.logo.color}"
+             :class="index % 2 === 0 ? 'party-left-logo' : 'party-right-logo'">
+          {{ party.logo.char }}
+        </div>
+      </div>
+
       <img class="bg-image" v-show="themeStore.getTheme === 'light'" alt="bg-image"
            src="@/assets/images/light_image.png"/>
       <img class="bg-image" v-show="themeStore.getTheme === 'dark'" alt="bg-image"
@@ -45,18 +52,28 @@
       <div class="options">
         <h2>02. <span>Searching Game</span></h2>
 
-        <div class="search">
+        <form class="search">
           <div class="filter-input">
-            <input class="search-input" type="text" placeholder="Search Game">
-
-            <button>
-              <img v-show="themeStore.getTheme === 'light'" alt="filter" src="@/assets/images/tune_black.png"/>
-              <img v-show="themeStore.getTheme === 'dark'" alt="filter" src="@/assets/images/tune_white.png"/>
-            </button>
+            <select class="select-game" v-model="search"
+                    :style="themeStore.getTheme === 'light' ? blackButtonStyle : whiteButtonStyle">
+              <option value="">Select a game</option>
+              <option v-for="game in games" :key="game.id" :value="game.name">{{ game.name }}</option>
+            </select>
           </div>
 
-          <button class="search-button">Search Now</button>
-        </div>
+          <div class="list">
+            <div v-show="!player.joined" v-for="(player, index) in players" :key="player.id" class="list-item">
+              <span class="order">{{ index + 1 }}</span>
+              <span class="name">{{ player.name }}</span>
+              <span :style="{'background': player.logo.color}" class="logo">{{ player.logo.char }}</span>
+              <button type="button" class="add" @click="addToParty(player)">+</button>
+            </div>
+          </div>
+
+          <button type="button" :disabled="!search" class="search-button" @click="getPlayersByParams">
+            Search Now
+          </button>
+        </form>
       </div>
     </section>
   </div>
@@ -65,10 +82,25 @@
 <script setup lang="ts">
 import {onMounted, ref, Ref} from "vue";
 import {useThemeStore} from "@/store/theme";
+import {Game} from "@/interfaces/game.interface";
+import {Player, PlayerPlatform} from "@/interfaces/player.interface";
+import {GamesService} from "@/services/games/games.service";
+import tune_black from "@/assets/images/tune_black.png";
+import tune_white from "@/assets/images/tune_white.png";
+import {PlayersService} from "@/services/players/players.service";
 
 const _buttons = document.getElementsByName('button-group');
+const _gamesService: GamesService = new GamesService();
+const _playersService: PlayersService = new PlayersService();
 
+const blackButtonStyle: string = 'background: url(' + tune_black + ') no-repeat; background-size: 24px; background-position: right 2rem center;';
+const whiteButtonStyle: string = 'background: url(' + tune_white + ') no-repeat; background-size: 24px; background-position: right 2rem center;';
+const games: Ref<Game[]> = ref(_gamesService.getGames());
+const players: Ref<Player[]> = ref(_playersService.getPlayers());
+const search: Ref<string> = ref('');
 const time: Ref<string> = ref('0');
+const onParty: Ref<Player[]> = ref([]);
+const selectedPlatform: Ref<PlayerPlatform> = ref(PlayerPlatform.PARTY);
 const themeStore = useThemeStore();
 
 const _setTime = (): void => {
@@ -86,9 +118,29 @@ const onSelected = (id: string): void => {
 
   const element: HTMLElement | null = document.getElementById(id);
   element?.setAttribute('class', 'selected');
+
+  selectedPlatform.value = element?.textContent as PlayerPlatform;
 }
 
-onMounted(() => {
+const getPlayersByParams = async () => {
+  onParty.value = [];
+
+  await _playersService.getAllPlayers(selectedPlatform.value, search.value);
+}
+
+const addToParty = (player: Player): void => {
+  players.value.forEach((p: Player): void => {
+    if (p.id === player.id) {
+      p.joined = true;
+    }
+  })
+
+  onParty.value.push(player);
+}
+
+onMounted(async () => {
+  await _gamesService.getAllGames();
+
   setInterval((): void => {
     _setTime();
   }, 1000);
@@ -260,6 +312,31 @@ div {
         }
       }
 
+      .party {
+        z-index: 1;
+        display: flex;
+        flex-direction: column;
+
+        &-left-logo, &-right-logo {
+          width: 3rem;
+          height: 3rem;
+          border-radius: 1rem;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          text-align: center;
+          padding: 3%
+        }
+
+        &-left-logo {
+          transform: translateX(-10vw);
+        }
+
+        &-right-logo {
+          transform: translateX(10vw);
+        }
+      }
+
       .bg-image {
         position: absolute;
         width: 100%;
@@ -323,26 +400,36 @@ div {
           display: flex;
           flex-direction: column;
           align-items: center;
+          gap: 1rem;
           background: var(--container-color);
           border-radius: 1rem;
           max-width: 100%;
+          height: 50vh;
 
           .filter-input {
             display: flex;
             flex-direction: row;
             justify-content: space-between;
-            width: 90%;
+            width: 100%;
 
             .search-input, button {
               margin-block: 1rem;
             }
 
-            .search-input {
-              width: 80%;
+            .select-game {
+              cursor: pointer;
+              width: 100%;
               font-weight: 900;
+              appearance: none;
+              padding: 1rem 2rem;
+              border-bottom: var(--body-color) 3px solid;
+
+              option {
+                height: 2rem;
+                background: var(--container-color);
+              }
 
               @media(width < 1440px) {
-                width: 60%;
                 font-weight: 500;
               }
             }
@@ -350,6 +437,53 @@ div {
             img {
               width: 24px;
               height: 24px;
+            }
+          }
+
+          .list {
+            height: 65%;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            width: 80%;
+            overflow: scroll;
+
+            &-item {
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              gap: 1rem;
+
+              .name {
+                width: 20%;
+              }
+
+              .order, .logo {
+                background: var(--main-color);
+                width: 1rem;
+                height: 1rem;
+                border-radius: 50%;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                text-align: center;
+                padding: 3%
+              }
+
+              .logo {
+                color: rgba(255, 255, 255, 1);
+              }
+
+              .add {
+                background: var(--main-color);
+                padding: 0.2rem 0.5rem;
+                border-radius: 0.5rem;
+                font-weight: 900;
+              }
+            }
+
+            @media(width < 1440px) {
+              height: 45%;
             }
           }
 
@@ -365,6 +499,11 @@ div {
             @media(width < 1440px) {
               padding-block: 1rem;
             }
+          }
+
+          &-button:disabled {
+            background: var(--link-color);
+            cursor: default;
           }
         }
       }

@@ -6,7 +6,6 @@
 </template>
 
 <script setup lang="ts">
-
 import BodyComponent from "@/components/BodyComponent/BodyComponent.vue";
 import CategoriesComponent from "@/components/CategoriesComponent/CategoriesComponent.vue";
 </script>

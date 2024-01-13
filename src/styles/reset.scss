@@ -76,3 +76,7 @@ body {
   color: var(--secondary-color);
   background: var(--container-color);
 }
+
+::-webkit-scrollbar {
+  display: none;
+}
