@@ -10,7 +10,7 @@
         <img v-show="themeStore.getTheme === 'dark'" alt="twisted_line" src="@/assets/images/dark_twisted_line.png"/>
       </div>
 
-      <div class="buttons">
+      <div v-if="!user" class="buttons">
         <button class="create-account">Create account</button>
         <router-link class="sign-in" :to="{ name: 'sign-in' }">Sign in</router-link>
       </div>
@@ -88,10 +88,12 @@ import {GamesService} from "@/services/games/games.service";
 import tune_black from "@/assets/images/tune_black.png";
 import tune_white from "@/assets/images/tune_white.png";
 import {PlayersService} from "@/services/players/players.service";
+import Router from "@/router";
 
 const _buttons = document.getElementsByName('button-group');
 const _gamesService: GamesService = new GamesService();
 const _playersService: PlayersService = new PlayersService();
+const _router = Router;
 
 const blackButtonStyle: string = 'background: url(' + tune_black + ') no-repeat; background-size: 24px; background-position: right 2rem center;';
 const whiteButtonStyle: string = 'background: url(' + tune_white + ') no-repeat; background-size: 24px; background-position: right 2rem center;';
@@ -102,6 +104,7 @@ const time: Ref<string> = ref('0');
 const onParty: Ref<Player[]> = ref([]);
 const selectedPlatform: Ref<PlayerPlatform> = ref(PlayerPlatform.PARTY);
 const themeStore = useThemeStore();
+const user = localStorage.getItem('auth');
 
 const _setTime = (): void => {
   const hours: number = new Date().getHours();
@@ -129,13 +132,17 @@ const getPlayersByParams = async () => {
 }
 
 const addToParty = (player: Player): void => {
-  players.value.forEach((p: Player): void => {
-    if (p.id === player.id) {
-      p.joined = true;
-    }
-  })
+  if (user) {
+    players.value.forEach((p: Player): void => {
+      if (p.id === player.id) {
+        p.joined = true;
+      }
+    })
 
-  onParty.value.push(player);
+    onParty.value.push(player);
+  } else {
+    _router.push({name: 'sign-in'});
+  }
 }
 
 onMounted(async () => {
@@ -506,5 +513,4 @@ div {
     }
   }
 }
-
 </style>
