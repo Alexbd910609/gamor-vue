@@ -75,7 +75,6 @@ onMounted(() => {
     document.body.classList[_selectedTheme === 'dark' ? 'add' : 'remove'](_darkTheme);
     theme.value = _selectedTheme;
   }
-  console.log(userStore.getUser);
 });
 </script>
 

@@ -27,7 +27,6 @@ export const useUserStore = defineStore('user', {
 
     setJwt(value: string): void {
       this.jwt = value;
-      console.log(this.jwt);
     }
   }
 })
