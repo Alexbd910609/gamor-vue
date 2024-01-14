@@ -25,18 +25,24 @@
 <script setup lang="ts">
 import {ref, Ref} from "vue";
 import {EMAIL_REGEXP} from "@/constants/regexps";
+import {AuthService} from "@/services/auth/auth.service";
+import {useToast} from "vue-toast-notification";
+import Router from "@/router";
+
+const _toast = useToast();
+const _router = Router;
 
 const email: Ref<string> = ref('');
 const password: Ref<string> = ref('');
-
 const emailError: Ref<string> = ref('');
 const passwordError: Ref<string> = ref('');
+const authService: AuthService = new AuthService();
 
 const _validEmail = (email: string) => {
   return EMAIL_REGEXP.test(email);
 }
 
-const signIn = (): void => {
+const signIn = async () => {
   if (!email.value) {
     emailError.value = 'E-mail is required';
   } else if (!_validEmail(email.value)) {
@@ -52,10 +58,14 @@ const signIn = (): void => {
   }
 
   if (!emailError.value && !passwordError.value) {
-    console.log(email.value);
-    console.log(password.value);
-    console.log(emailError.value);
-    console.log(passwordError.value);
+    const response = await authService.signIn(email.value, password.value);
+
+    if (response) {
+      _toast.info('User signed in successfully');
+      await _router.push({path: 'home'});
+    } else {
+      _toast.error('Please check your login credentials');
+    }
   }
 }
 </script>

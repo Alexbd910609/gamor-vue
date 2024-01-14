@@ -20,8 +20,13 @@
         <img v-show="theme === 'dark'" src="../../assets/images/light_mode.png" alt="light_mode">
       </button>
 
-      <router-link class="sign-in" :to="{ name: 'sign-in' }">Sign in</router-link>
-      <button class="create-account">Create account</button>
+      <router-link v-show="!userStore.getJwt" class="sign-in" :to="{ name: 'sign-in' }">Sign in</router-link>
+      <button v-show="!userStore.getJwt" class="create-account">Create account</button>
+
+      <div v-show="userStore.getJwt" class="login-menu">
+        <span :style="{'background': userStore.getUser?.logo?.color}" class="logo">{{ userStore.getUser?.logo?.char }}</span>
+        <button class="log-out" @click="logOut()">Log out</button>
+      </div>
     </section>
   </nav>
 </template>
@@ -30,12 +35,17 @@
 import {onMounted, ref, Ref} from "vue";
 import {themeKey} from "@/constants/storage-keys";
 import {useThemeStore} from "@/store/theme";
+import Router from "@/router";
+import {User} from "@/interfaces/user.interface";
+import {useUserStore} from "@/store/user";
 
 const _darkTheme: string = 'dark-theme';
 const _selectedTheme: string | null = localStorage.getItem(themeKey);
 const _themeStore = useThemeStore();
+const _router = Router;
 
 const theme: Ref<string | null> = ref('light');
+const userStore = useUserStore();
 
 const changeTheme = (): void => {
   if (theme.value === 'light') {
@@ -51,6 +61,13 @@ const changeTheme = (): void => {
   }
 }
 
+const logOut = (): void => {
+  _router.push({ name: 'sign-in' });
+  localStorage.removeItem('auth');
+  userStore.setUser({} as User);
+  userStore.setJwt('');
+}
+
 onMounted(() => {
   if (!_selectedTheme) {
     localStorage.setItem(themeKey, theme.value as string);
@@ -58,6 +75,7 @@ onMounted(() => {
     document.body.classList[_selectedTheme === 'dark' ? 'add' : 'remove'](_darkTheme);
     theme.value = _selectedTheme;
   }
+  console.log(userStore.getUser);
 });
 </script>
 
@@ -136,6 +154,31 @@ nav {
 
       @media(width < 1440px) {
         padding: 0.7rem 1rem;
+      }
+    }
+
+    .login-menu {
+      display: flex;
+      flex-direction: row;
+      gap: 1rem;
+      align-items: center;
+      width: 10vw;
+
+      .log-out {
+        font-weight: 900;
+        color: var(--secondary-color)
+      }
+
+      .logo {
+        color: rgba(255, 255, 255, 1);
+        width: 2rem;
+        height: 2rem;
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        padding: 3%
       }
     }
 

@@ -9,6 +9,7 @@ import MenuComponent from "@/components/MenuComponent/MenuComponent.vue";
 
 <style lang="scss">
 @import "styles/reset";
+@import 'vue-toast-notification/dist/theme-bootstrap.css';
 
 #app {
   padding: 4% 7%;
